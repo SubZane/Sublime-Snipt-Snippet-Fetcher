@@ -1,18 +1,5 @@
 [
     {
-        "id": "edit",
-        "children":
-        [
-            { "id": "characters" },
-            { "caption": "-" },
-            { "caption": "Snipt.net for Sublime", "children" :
-                [
-                    { "command": "sync_snipt", "caption": "Sync with snipt.net"}
-                ]
-            }
-        ]
-    },
-    {
         "caption": "Preferences",
         "mnemonic": "n",
         "id": "preferences",

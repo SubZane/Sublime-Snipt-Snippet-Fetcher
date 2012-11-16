@@ -1,7 +1,6 @@
 import sublime, sublime_plugin, urllib2, json, os, re
 
-class SyncSniptCommand(sublime_plugin.TextCommand):
-
+class ListSniptsCommand(sublime_plugin.TextCommand):
     def get_userinfos(self):
         # snipt plugin settings
         self.settings = sublime.load_settings("Snipt.sublime-settings")
@@ -26,7 +25,7 @@ class SyncSniptCommand(sublime_plugin.TextCommand):
                 sublime.error_message('No snipt.net apikey. You must first set you apikey in: Sublime Text2 ~> Preferences ~> Package Settings ~> Snipt Tools ~> Settings')
                 return
 
-    def run(self, edit):
+    def get_snippets(self):
         # check for userinfos config
         self.get_userinfos()
         username = self.username
@@ -46,29 +45,26 @@ class SyncSniptCommand(sublime_plugin.TextCommand):
             
         # grab all user snipt #'s
         parse = json.load(response)
-        parse_me = parse['objects']
+        snippets = parse['objects']
 
-        # run the loop
-        for item in parse_me:
-            title = item['title']
-            code = item['code']
-             
-            rx = re.compile('\W+')
-            cleantitle = rx.sub(' ', title).strip()
-            
-            if (code):
-                # lets turn wine (snipts) into water (sublime snippets)
-                buildfile = sublime.packages_path()+'/Sublime-Snipt/repo/{0}.sublime-snippet'.format(cleantitle[0:20])
-                newfile = open(buildfile,'w+')
-                # escape snipts that start with '$'
-                if code[0] == "$": 
-                    newfile.write('<snippet><content><![CDATA[\{0}]]></content><tabTrigger>snipt</tabTrigger></snippet>'.format(code))
-                else:
-                    newfile.write('<snippet><content><![CDATA[{0}]]></content><tabTrigger>snipt</tabTrigger></snippet>'.format(code))
-                newfile.close()
+        snippet_names = [snippet['title'] for snippet in snippets]
+        def on_snippet_num(num):
+            if num != -1:
+                self.handle_snipt(snippets[num])
 
+        sublime.active_window().show_quick_panel(snippet_names, on_snippet_num)
+        
+        #    title = item['title']
+        #    code = item['code']
 
-# This is coming soon. Ability to send text to snipt.net and create a sublime snippet.
-# class CreateSniptCommand(sublime_plugin.TextCommand):
-#     def run(self, edit):
-#         print 1
+    def handle_snipt(self, snippet):
+        edit = self.view.begin_edit()
+        # insert the correct code here, but dunno how yet :P
+        view = sublime.active_window().active_view()
+        edit = view.begin_edit()
+        for region in view.sel():
+            view.replace(edit, region, snippet['code'])
+        view.end_edit(edit) 
+    
+    def run(self, edit):
+        self.get_snippets()

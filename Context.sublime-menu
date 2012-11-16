@@ -1,6 +1,6 @@
 [
     { "id": "reveal" },
-    { "caption": "Snipt Tools",
+    { "caption": "Snipt.net for Sublime",
         "children":
             [
                 { "id": "reveal" },

@@ -5,7 +5,7 @@
         [
             { "id": "characters" },
             { "caption": "-" },
-            { "caption": "Snipt Tools", "children" :
+            { "caption": "Snipt.net for Sublime", "children" :
                 [
                     { "command": "sync_snipt", "caption": "Sync with snipt.net"}
                 ]
@@ -25,12 +25,12 @@
                 "children":
                 [
                     {
-                        "caption": "Snipt Tools",
+                        "caption": "Snipt.net for Sublime",
                         "children":
                         [
                             {
                                 "command": "open_file",
-                                "args": {"file": "${packages}/snipt/Snipt.sublime-settings"},
+                                "args": {"file": "${packages}/Sublime-Snipt.net/Snipt.sublime-settings"},
                                 "caption": "Settings"
                             }
                         ]

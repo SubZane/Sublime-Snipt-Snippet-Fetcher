@@ -71,4 +71,4 @@ class SyncSniptCommand(sublime_plugin.TextCommand):
 # This is coming soon. Ability to send text to snipt.net and create a sublime snippet.
 # class CreateSniptCommand(sublime_plugin.TextCommand):
 #     def run(self, edit):
-#         print 0
+#         print 1

@@ -1,6 +1,22 @@
 [
     {
-        "caption": "Snipt: Insert snippet",
-        "command": "list_snipts"
+        "caption": "Snipt.net: Insert Private snippet",
+        "command": "insert_private_snipts"
+    },
+    {
+        "caption": "Snipt.net: Insert Private snippet by tag",
+        "command": "insert_private_snipts_by_tag"
+    },
+    {
+        "caption": "Snipt.net: Insert Private Favorite snippet",
+        "command": "insert_favorite_private_snipts"
+    },
+    {
+        "caption": "Snipt.net: Search public snippets...",
+        "command": "search_public_snipts"
+    },
+    {
+        "caption": "Snipt.net: Get public snippets by tag...",
+        "command": "get_public_snipts_by_tag"
     }
 ]

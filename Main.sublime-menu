@@ -12,12 +12,12 @@
                 "children":
                 [
                     {
-                        "caption": "Snipt.net for Sublime",
+                        "caption": "Snipt.net Snippet Fetcher",
                         "children":
                         [
                             {
                                 "command": "open_file",
-                                "args": {"file": "${packages}/Sublime-Snipt.net/Snipt.sublime-settings"},
+                                "args": {"file": "${packages}/Snipt.net Snippet Fetcher/Snipt.sublime-settings"},
                                 "caption": "Settings"
                             }
                         ]

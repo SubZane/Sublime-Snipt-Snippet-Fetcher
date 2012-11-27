@@ -5,7 +5,9 @@ USERNAME = SETTINGS.get('snipt_username')
 APIKEY = SETTINGS.get('snipt_apikey')
 USERID = SETTINGS.get('snipt_userid')
 APIMODE = SETTINGS.get('snipt_apimode')
-SEARCHLIMIT = 15
+
+PRIVATE_SNIPPETS = 'snippets.private.json'
+FAVORITE_SNIPPETS = 'snippets.favorite.json'
 
 if (not APIMODE):
     sublime.error_message('No snipt.net apimode. You must first set you API mode in: Sublime Text2 ~> Preferences ~> Package Settings ~> Snipt Tools ~> Settings')
@@ -17,19 +19,6 @@ elif (APIMODE == "private"):
         sublime.error_message('No snipt.net username. You must first set you username in: Sublime Text2 ~> Preferences ~> Package Settings ~> Snipt Tools ~> Settings')
     if (not APIKEY):
         sublime.error_message('No snipt.net apikey. You must first set you apikey in: Sublime Text2 ~> Preferences ~> Package Settings ~> Snipt Tools ~> Settings')
-
-
-
-def get_lexers():
-    try:
-        response = urllib2.urlopen('https://snipt.net/api/public/lexer/')
-    except urllib2.URLError, (err):
-        sublime.error_message("Connection refused. Try again later. Snipt step: 1"+err)
-        return
-        
-    parse = json.load(response)
-    lexers = parse['objects']
-    return lexers
 
 def get_private_snippets(tag):
     global USERNAME, APIKEY
@@ -46,6 +35,59 @@ def get_private_snippets(tag):
     snippets = parse['objects']
     return snippets
 
+def get_cached_private_snippets():
+    global PRIVATE_SNIPPETS
+    if os.path.isfile(PRIVATE_SNIPPETS) == False:
+        cache_private_snippets()
+
+    filedata=open(PRIVATE_SNIPPETS)
+
+    try:
+        parse = json.load(filedata)
+    except Exception, (err):
+        sublime.error_message("No snippets found. Try adding some.")
+
+    snippets = parse['objects']
+    return snippets
+
+def get_cached_favorite_snippets():
+    global FAVORITE_SNIPPETS
+    if os.path.isfile(FAVORITE_SNIPPETS) == False:
+        cache_favorite_snippets()
+
+    filedata=open(FAVORITE_SNIPPETS)
+
+    try:
+        parse = json.load(filedata)
+    except Exception, (err):
+        sublime.error_message("No favorite snippets found. Try adding some.")
+
+    snippets = parse['objects']
+    return snippets
+
+def cache_private_snippets():
+    global USERNAME, APIKEY, PRIVATE_SNIPPETS
+    try:
+        response = urllib2.urlopen('https://snipt.net/api/private/snipt/?username={0}&api_key={1}&format=json'.format(USERNAME, APIKEY))
+    except urllib2.URLError, (err):
+        sublime.error_message("Connection refused. Try again later. Snipt step: 1"+err)
+        return
+    snippetdata = response.read()
+        
+    newfile = open(PRIVATE_SNIPPETS,'w+')
+    newfile.write(snippetdata)
+    newfile.close()
+    return
+
+def cache_favorite_snippets():
+    global FAVORITE_SNIPPETS
+
+    favorites = get_favorite_private_snippets()
+    newfile = open(FAVORITE_SNIPPETS,'w+')
+    newfile.write(favorites)
+    newfile.close()
+    return
+
 def get_favorite_private_snippets():
     global USERNAME, APIKEY
     try:
@@ -55,149 +97,56 @@ def get_favorite_private_snippets():
         return
         
     parse = json.load(response)
-    uris = parse['objects']
-    return snippets
-
-def get_public_snippets(tag):
-    global USERID
-    try:
-        if tag == None:
-            response = urllib2.urlopen('https://snipt.net/api/public/snipt/?user={0}'.format(USERID))
+    favorites = parse['objects']
+    snippetstring = ''
+    for favorite in favorites:
+        snippet = get_snippet_by_uri(favorite['snipt'])
+        if snippetstring == '':
+            snippetstring = snippet
         else:
-            response = urllib2.urlopen('https://snipt.net/api/public/snipt/?tag={0}&limit={1}'.format(tag, SEARCHLIMIT))
-    except urllib2.URLError, (err):
-        sublime.error_message("Connection refused. Try again later. Snipt step: 1"+err)
-        return
-        
-    parse = json.load(response)
-    snippets = parse['objects']
+            snippetstring += ', '+ snippet
+    snippets = '{0}"objects": [{1}]{2}'.format("{",snippetstring,"}")
     return snippets
 
-def find_public_snippets(keyword):
-    global SEARCHLIMIT
+def get_snippet_by_uri(uri):
     try:
-        response = urllib2.urlopen('https://snipt.net/api/public/snipt/?format=json&q={0}&limit={1}'.format(keyword, SEARCHLIMIT))
+        response = urllib2.urlopen('https://snipt.net{0}'.format(uri))
     except urllib2.URLError, (err):
         sublime.error_message("Connection refused. Try again later. Snipt step: 1"+err)
         return
-        
     parse = json.load(response)
-    snippets = parse['objects']
-    return snippets
+    snippet = json.dumps(parse)
 
-def get_private_tags():
-    global USERNAME, APIKEY
-    try:
-        response = urllib2.urlopen('https://snipt.net/api/private/tag/?username={0}&api_key={1}&format=json'.format(USERNAME, APIKEY))
-    except urllib2.URLError, (err):
-        sublime.error_message("Connection refused. Try again later. Snipt step: 1"+err)
-        return
-        
-    parse = json.load(response)
-    tags = parse['objects']
-    return tags
-
-def get_public_tags():
-    global USERNAME, APIKEY
-    try:
-        response = urllib2.urlopen('https://snipt.net/api/public/tag/')
-    except urllib2.URLError, (err):
-        sublime.error_message("Connection refused. Try again later. Snipt step: 1"+err)
-        return
-        
-    parse = json.load(response)
-    tags = parse['objects']
-    return tags
-
-def find_private_snippets_by_tag(tag):
-    snippets = get_private_snippets(tag['id'])
-    snippet_names = [snippet['title'] for snippet in snippets]
-    def on_snippet_num(num):
-        if num != -1:
-            insert_selected_snippet(snippets[num])
-    sublime.active_window().show_quick_panel(snippet_names, on_snippet_num)
-
-def find_public_snippets_by_tag(tag):
-    snippets = get_public_snippets(tag['id'])
-    snippet_names = [snippet['title'] for snippet in snippets]
-    def on_snippet_num(num):
-        if num != -1:
-            insert_selected_snippet(snippets[num])
-    sublime.active_window().show_quick_panel(snippet_names, on_snippet_num)
-
-def find_private_snippets_by_lexer(lexer):
-    view = sublime.active_window().active_view()
-    edit = view.begin_edit()
-    for region in view.sel():
-        view.replace(edit, region, snippet['code'])
-    view.end_edit(edit) 
+    return snippet
 
 def insert_selected_snippet(snippet):
-    #    title = item['title']
-    #    code = item['code']
     view = sublime.active_window().active_view()
     edit = view.begin_edit()
     for region in view.sel():
         view.replace(edit, region, snippet['code'])
     view.end_edit(edit) 
 
-
-class ShowLexers(sublime_plugin.TextCommand):
-
+class InsertFavoriteSniptsCommand(sublime_plugin.TextCommand):
     def run(self, edit):
-        lexers = get_lexers()
-        lexer_names = [lexer['name'] for lexer in lexers]
-        def on_lexer_num(num):
-            if num != -1:
-                insert_selected_snippet(snippets[num])
-        sublime.active_window().show_quick_panel(lexer_names, on_lexer_num)
-
-class SearchPublicSnipts(sublime_plugin.TextCommand):
-
-    def run(self, edit):
-        sublime.active_window().show_input_panel("Enter keyword:", "", self.on_done, None, None)
-        pass
-
-    def on_done(self, text):
-        snippets = find_public_snippets(text)
-        snippet_names = [snippet['title'] for snippet in snippets]
-        def on_snippet_num(num):
-            if num != -1:
-                insert_selected_snippet(snippets[num])
-        sublime.active_window().show_quick_panel(snippet_names, on_snippet_num)
-
-class GetPublicSniptsByTagCommand(sublime_plugin.TextCommand):
-    def run(self, edit):
-        tags = get_public_tags()
-        tag_names = [tag['name'] for tag in tags]
-        def on_tag_num(num):
-            if num != -1:
-                find_public_snippets_by_tag(tags[num])
-        sublime.active_window().show_quick_panel(tag_names, on_tag_num)
-
-class InsertPrivateSniptsByTagCommand(sublime_plugin.TextCommand):
-    def run(self, edit):
-        tags = get_private_tags()
-        tag_names = [tag['name'] for tag in tags]
-        def on_tag_num(num):
-            if num != -1:
-                find_private_snippets_by_tag(tags[num])
-        sublime.active_window().show_quick_panel(tag_names, on_tag_num)
-
-class InsertFavoritePrivateSniptsCommand(sublime_plugin.TextCommand):
-    def run(self, edit):
-        snippets = get_favorite_private_snippets()
-        snippet_names = [snippet['title'] for snippet in snippets]
-        def on_snippet_num(num):
-            if num != -1:
-                insert_selected_snippet(snippets[num])
-        sublime.active_window().show_quick_panel(snippet_names, on_snippet_num)
+        snippets = get_cached_favorite_snippets()
+        show_snippets_quick_panel(snippets)
 
 class InsertPrivateSniptsCommand(sublime_plugin.TextCommand):
     def run(self, edit):
-        snippets = get_private_snippets(None)
-        snippet_names = [snippet['title'] for snippet in snippets]
+        snippets = get_cached_private_snippets()
+        show_snippets_quick_panel(snippets)
+
+def show_snippets_quick_panel(snippets_data):
+    if snippets_data == None:
+        message_dialog("No snippets found")
+    else:
+        snippet_names = [snippet['title'] for snippet in snippets_data]
         def on_snippet_num(num):
             if num != -1:
-                insert_selected_snippet(snippets[num])
+                insert_selected_snippet(snippets_data[num])
         sublime.active_window().show_quick_panel(snippet_names, on_snippet_num)
+
+class CachePrivateSniptsCommand(sublime_plugin.TextCommand):
+    def run(self, edit):
+        cache_private_snippets()
+        cache_favorite_snippets()

@@ -5,15 +5,15 @@
             [
                 { "id": "reveal" },
                 {
-                    "caption": "Snipt.net: Insert Private snippet",
+                    "caption": "Snipt Snippet Fetcher: Insert Private snippet",
                     "command": "insert_private_snipts"
                 },
                 {
-                    "caption": "Snipt.net: Insert Favorite snippet",
+                    "caption": "Snipt Snippet Fetcher: Insert Favorite snippet",
                     "command": "insert_favorite_snipts"
                 },
                 {
-                    "caption": "Snipt.net: Cache Snippets",
+                    "caption": "Snipt Snippet Fetcher: Cache Snippets",
                     "command": "cache_private_snipts"
                 }
 

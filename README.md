@@ -1,4 +1,4 @@
-#Snipt.net Snippet Fetcher
+#Snipt Snippet Fetcher
 
 ## Description
 Forked from [Taecho/Sublime-Snipt](https://github.com/Taecho/Sublime-Snipt)
@@ -21,7 +21,7 @@ Go to your Sublime Text 2 Packages directory and clone the repository using the 
 
 ## How to use
 * Launch the Command Palette using the menu (Tools->Command Palette...) or short key-command Shift+Cmd+P
-* Find the prefix `Snipt.net Fetcher:`
+* Find the prefix `Snipt Snippet Fetcher:`
 
 ## To-do's
 * Add to "Package Control"

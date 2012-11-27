@@ -1,6 +1,6 @@
 [
     { "id": "reveal" },
-    { "caption": "Snipt.net Snippet Fetcher",
+    { "caption": "Snipt Snippet Fetcher",
         "children":
             [
                 { "id": "reveal" },

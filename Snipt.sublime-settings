@@ -1,7 +1,7 @@
 /* Snipt settings  */
 {
-    "snipt_username": "andreasnorman",
-    "snipt_apikey": "b266cfb17c831bc3194a5e0bd45d612f12d5b5b5",
+    "snipt_username": "",
+    "snipt_apikey": "",
     "snipt_userid": "",
     //API mode: public or private
     "snipt_apimode": "private"

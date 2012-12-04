@@ -40,7 +40,7 @@ Find the settings file in the menu: Sublime Text2 ~> Preferences ~> Package Sett
 
 ## To-do's
 * Add to "Package Control"
-
+* Ability to create new snippets
 
 ## Authors
 Twitter: [Andreas Norman](http://www.twitter.com/andreasnorman) GitHub: [SubZane](https://github.com/SubZane)

@@ -1,3 +1,12 @@
+#   ------------------------------------------------------------
+#   Snipt.net Snippet Fetcher
+#   Version 1.1
+#   by Andreas Norman (@andreasnorman)
+#
+#   https://github.com/SubZane/Sublime-Snipt.net
+#
+#   ------------------------------------------------------------
+
 import sublime, sublime_plugin, urllib2, json, os, re
 
 SETTINGS = sublime.load_settings("Snipt.sublime-settings")
@@ -6,22 +15,104 @@ BASEPATH = sublime.packages_path()+'/Snipt.net Snippet Fetcher/'
 
 USERNAME = SETTINGS.get('snipt_username')
 APIKEY = SETTINGS.get('snipt_apikey')
-USERID = SETTINGS.get('snipt_userid')
-APIMODE = SETTINGS.get('snipt_apimode')
+OTHER_USERS = SETTINGS.get('snipt_other_users')
+OTHER_USER_IDS = load_other_users()
 
 PRIVATE_SNIPPETS = BASEPATH+'snippets.private.json'
+PUBLIC_SNIPPETS = BASEPATH+'snippets.public.[userid].json'
 FAVORITE_SNIPPETS = BASEPATH+'snippets.favorite.json'
 
-if (not APIMODE):
-    sublime.error_message('No snipt.net apimode. You must first set you API mode in: Sublime Text2 ~> Preferences ~> Package Settings ~> Snipt.net Snippet Fetcher ~> Settings')
-if (APIMODE == "public"):
-    if (not USERID):
-        sublime.error_message('No snipt.net userid. You must first set you userid in: Sublime Text2 ~> Preferences ~> Package Settings ~> Snipt.net Snippet Fetcher ~> Settings')
-elif (APIMODE == "private"):
-    if (not USERNAME):
-        sublime.error_message('No snipt.net username. You must first set you username in: Sublime Text2 ~> Preferences ~> Package Settings ~> Snipt.net Snippet Fetcher ~> Settings')
-    if (not APIKEY):
-        sublime.error_message('No snipt.net apikey. You must first set you apikey in: Sublime Text2 ~> Preferences ~> Package Settings ~> Snipt.net Snippet Fetcher ~> Settings')
+if (not USERNAME):
+    sublime.error_message('No snipt.net username. You must first set you username in: Sublime Text2 ~> Preferences ~> Package Settings ~> Snipt.net Snippet Fetcher ~> Settings')
+else:
+    USERID = get_user_id(USERNAME)
+if (not APIKEY):
+    sublime.error_message('No snipt.net apikey. You must first set you apikey in: Sublime Text2 ~> Preferences ~> Package Settings ~> Snipt.net Snippet Fetcher ~> Settings')
+
+def load_other_users_into_list():
+    global OTHER_USERS
+    userlist = [users.strip() for users in OTHER_USERS.split(',')]
+    return userlist
+
+def load_other_users():
+    global OTHER_USERS
+    user_ids = [get_user_id(users.strip()) for users in OTHER_USERS.split(',')]
+    return user_ids
+
+def get_user_id(username):
+    try:
+        response = urllib2.urlopen('https://snipt.net/api/public/user/?username={0}'.format(username))
+    except urllib2.URLError, (err):
+        sublime.error_message("Connection refused. Try again later. Snipt step: 1"+err)
+        return
+    parse = json.load(response)
+    try:
+        user_id = parse['objects'][0]['id']
+    except Exception, e:
+        print "User not found: "+str(e)
+        return 0
+    return user_id
+
+def get_public_snippets(username):
+    global USERID
+    try:
+        if username == None:
+            response = urllib2.urlopen('https://snipt.net/api/public/snipt/?user={0}'.format(USERID))
+        else:
+            user_id = get_user_id(username)
+            response = urllib2.urlopen('https://snipt.net/api/public/snipt/?user={0}'.format(user_id))
+    except urllib2.URLError, (err):
+        sublime.error_message("Connection refused. Try again later. Snipt step: 1"+err)
+        return
+        
+    parse = json.load(response)
+    snippets = parse['objects']
+    return snippets
+
+def cache_public_snippets(username):
+    global USERID, PUBLIC_SNIPPETS
+    if username == None:
+        user_id = USERID
+    else:
+        user_id = get_user_id(username)
+    
+    snippet_file_name = PUBLIC_SNIPPETS.replace("[userid]", str(user_id));
+    try:
+        response = urllib2.urlopen('https://snipt.net/api/public/snipt/?user={0}'.format(user_id))
+    except urllib2.URLError, (err):
+        sublime.error_message("Connection refused. Try again later. Snipt step: 1"+err)
+        return
+    snippetdata = response.read()
+    try:   
+        newfile = open(snippet_file_name,'w+')
+        newfile.write(snippetdata)
+        newfile.close()
+    except IOError, (err):
+        sublime.error_message("Cannot create or write to file: "+str(err))
+        return
+    return
+
+def get_cached_public_snippets(username):
+    global PUBLIC_SNIPPETS, USERID
+    if username == None:
+        user_id = USERID
+    else:
+        user_id = get_user_id(username)
+
+    snippet_file_name = PUBLIC_SNIPPETS.replace("[userid]", str(user_id));
+
+    if os.path.isfile(snippet_file_name) == False:
+        cache_public_snippets(username)
+
+    filedata=open(snippet_file_name)
+
+    try:
+        parse = json.load(filedata)
+    except Exception, (err):
+        sublime.error_message("No snippets found. Try adding some. "+str(err))
+
+    snippets = parse['objects']
+    return snippets
 
 def get_private_snippets(tag):
     global USERNAME, APIKEY
@@ -147,6 +238,20 @@ class InsertPrivateSniptsCommand(sublime_plugin.TextCommand):
         snippets = get_cached_private_snippets()
         show_snippets_quick_panel(snippets)
 
+class InsertPublicSniptsCommand(sublime_plugin.TextCommand):
+    def run(self, edit):
+        snippets = get_cached_public_snippets(None)
+        show_snippets_quick_panel(snippets)
+
+class InsertOtherUserSniptsCommand(sublime_plugin.TextCommand):
+    def run(self, edit):
+        userlist = load_other_users_into_list()
+        def on_user(num):
+            if num != -1:
+                snippets = get_cached_public_snippets(userlist[num])
+                show_snippets_quick_panel(snippets)
+        sublime.active_window().show_quick_panel(userlist, on_user)
+
 def show_snippets_quick_panel(snippets_data):
     if snippets_data == None:
         message_dialog("No snippets found")
@@ -157,7 +262,11 @@ def show_snippets_quick_panel(snippets_data):
                 insert_selected_snippet(snippets_data[num])
         sublime.active_window().show_quick_panel(snippet_names, on_snippet_num)
 
-class CachePrivateSniptsCommand(sublime_plugin.TextCommand):
+class CacheAllSniptsCommand(sublime_plugin.TextCommand):
     def run(self, edit):
         cache_private_snippets()
         cache_favorite_snippets()
+        cache_public_snippets(None)
+        userlist = load_other_users_into_list()
+        for user in userlist:
+            cache_public_snippets(user)

@@ -2,7 +2,5 @@
 {
     "snipt_username": "",
     "snipt_apikey": "",
-    "snipt_userid": "",
-    //API mode: public or private
-    "snipt_apimode": "private"
+    "snipt_other_users": ""
 }

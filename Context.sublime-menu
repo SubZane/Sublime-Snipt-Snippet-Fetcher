@@ -9,12 +9,20 @@
                     "command": "insert_private_snipts"
                 },
                 {
+                    "caption": "Snipt Snippet Fetcher: Insert Public snippet",
+                    "command": "insert_public_snipts"
+                },
+                {
                     "caption": "Snipt Snippet Fetcher: Insert Favorite snippet",
                     "command": "insert_favorite_snipts"
                 },
                 {
-                    "caption": "Snipt Snippet Fetcher: Cache Snippets",
-                    "command": "cache_private_snipts"
+                    "caption": "Snipt Snippet Fetcher: Cache All Snippets",
+                    "command": "cache_all_snipts"
+                },
+                {
+                    "caption": "Snipt Snippet Fetcher: Insert Other Users Snippets",
+                    "command": "insert_other_user_snipts"
                 }
 
             ] 

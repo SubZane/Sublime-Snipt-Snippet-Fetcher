@@ -16,7 +16,6 @@ BASEPATH = sublime.packages_path()+'/Snipt.net Snippet Fetcher/'
 USERNAME = SETTINGS.get('snipt_username')
 APIKEY = SETTINGS.get('snipt_apikey')
 OTHER_USERS = SETTINGS.get('snipt_other_users')
-OTHER_USER_IDS = load_other_users()
 
 PRIVATE_SNIPPETS = BASEPATH+'snippets.private.json'
 PUBLIC_SNIPPETS = BASEPATH+'snippets.public.[userid].json'
@@ -24,8 +23,6 @@ FAVORITE_SNIPPETS = BASEPATH+'snippets.favorite.json'
 
 if (not USERNAME):
     sublime.error_message('No snipt.net username. You must first set you username in: Sublime Text2 ~> Preferences ~> Package Settings ~> Snipt.net Snippet Fetcher ~> Settings')
-else:
-    USERID = get_user_id(USERNAME)
 if (not APIKEY):
     sublime.error_message('No snipt.net apikey. You must first set you apikey in: Sublime Text2 ~> Preferences ~> Package Settings ~> Snipt.net Snippet Fetcher ~> Settings')
 
@@ -54,10 +51,11 @@ def get_user_id(username):
     return user_id
 
 def get_public_snippets(username):
-    global USERID
+    global USERNAME
     try:
         if username == None:
-            response = urllib2.urlopen('https://snipt.net/api/public/snipt/?user={0}'.format(USERID))
+            user_id = get_user_id(USERNAME)
+            response = urllib2.urlopen('https://snipt.net/api/public/snipt/?user={0}'.format(user_id))
         else:
             user_id = get_user_id(username)
             response = urllib2.urlopen('https://snipt.net/api/public/snipt/?user={0}'.format(user_id))
@@ -70,9 +68,9 @@ def get_public_snippets(username):
     return snippets
 
 def cache_public_snippets(username):
-    global USERID, PUBLIC_SNIPPETS
+    global USERNAME, PUBLIC_SNIPPETS
     if username == None:
-        user_id = USERID
+        user_id = get_user_id(USERNAME)
     else:
         user_id = get_user_id(username)
     
@@ -93,9 +91,9 @@ def cache_public_snippets(username):
     return
 
 def get_cached_public_snippets(username):
-    global PUBLIC_SNIPPETS, USERID
+    global PUBLIC_SNIPPETS, USERNAME
     if username == None:
-        user_id = USERID
+        user_id = get_user_id(USERNAME)
     else:
         user_id = get_user_id(username)
 

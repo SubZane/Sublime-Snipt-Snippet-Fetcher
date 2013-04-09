@@ -39,7 +39,6 @@ Find the settings file in the menu: Sublime Text2 ~> Preferences ~> Package Sett
 * `Snipt Snippet Fetcher: Insert Other Users Snippets` will use the cached json file to help you insert a public snippet from another user. This function will cache if no cache found.
 
 ## To-do's
-* Add to "Package Control"
 * Ability to create new snippets
 
 ## Authors
